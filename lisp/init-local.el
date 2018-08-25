@@ -60,9 +60,13 @@
 (setq uniquify-separator nil)
 (setq whitespace-cleanup-mode-only-if-initially-clean t)
 ;;(dimmer-mode 0)
+(pixel-scroll-mode -1)
 
 (require-package 'multi-term)
 (setq multi-term-program "/usr/bin/zsh")
+(add-hook 'term-mode-hook
+          (lambda ()
+            (setq term-buffer-maximum-size 10000)))
 
 (require-package 'golden-ratio-scroll-screen)
 (global-set-key "\C-v" 'golden-ratio-scroll-screen-up)
@@ -365,6 +369,9 @@ User buffers are those whose name does not start with *."
 (setq eclim-executable "/home/zshi/.p2/pool/plugins/org.eclim_2.8.0/bin/eclim")
 (require-package 'eclim)
 (global-eclim-mode)
+;; make the junit buffer check more robust
+(defun eclim-java-junit-buffer? ()
+  (eclim--buffer-contains-substring "org.junit."))
 
 (require-package 'company-emacs-eclim)
 (company-emacs-eclim-setup)
@@ -372,9 +379,9 @@ User buffers are those whose name does not start with *."
 ;; fix the wrong path issue for company-emacs-eclim
 (defun my-eclim-fix-relative-path (path)
   (replace-regexp-in-string "^.*src/" "src/" path))
-
 (advice-add 'eclim--project-current-file :filter-return #'my-eclim-fix-relative-path)
-(define-key eclim-mode-map (kbd "C-c C-e p f") 'eclim-problems-correct)
+
+(define-key eclim-mode-map (kbd "C-c C-f") 'eclim-problems-correct)
 
 ;; salesforce like use 2 space as indent
 (add-hook 'java-mode-hook  'sf-java-mode)
