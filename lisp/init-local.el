@@ -66,7 +66,24 @@
 (setq multi-term-program "/usr/bin/zsh")
 (add-hook 'term-mode-hook
           (lambda ()
-            (setq term-buffer-maximum-size 10000)))
+            (setq term-buffer-maximum-size 10000)
+            (toggle-truncate-lines 1)))
+(add-hook 'term-mode-hook
+          (lambda ()
+            (define-key term-raw-map (kbd "M-y") 'term-paste)))
+
+(defun toggle-window-dedicated ()
+  "Control whether or not Emacs is allowed to display another
+buffer in current window."
+  (interactive)
+  (message
+   (if (let (window (get-buffer-window (current-buffer)))
+         (set-window-dedicated-p window (not (window-dedicated-p window))))
+       "%s: Can't touch this!"
+     "%s is up for grabs.")
+   (current-buffer)))
+
+(global-set-key (kbd "C-c t") 'toggle-window-dedicated)
 
 (require-package 'golden-ratio-scroll-screen)
 (global-set-key "\C-v" 'golden-ratio-scroll-screen-up)
