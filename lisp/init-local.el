@@ -59,6 +59,8 @@
 (setq blink-cursor-delay 0.5)
 (setq uniquify-separator nil)
 (setq whitespace-cleanup-mode-only-if-initially-clean t)
+(setq split-height-threshold 1000)
+(setq line-number-display-limit-width 2000000)
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
 
