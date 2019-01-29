@@ -45,6 +45,9 @@
                                         ;(set-fontset-font "fontset-default" 'chinese-big5-1 '("Microsoft YaHei" . "unicode-bmp"))
                                         ;(set-fontset-font "fontset-default" 'chinese-big5-2 '("Microsoft YaHei" . "unicode-bmp"))
 
+(set-face-attribute 'default nil :font "Monaco 14")
+(set-frame-font "Monaco 14" nil t)
+
 ;;----------------------------------------------------------------------------
 ;; override some settings in the remote branch
 ;;----------------------------------------------------------------------------
@@ -52,7 +55,7 @@
 (menu-bar-mode 0)
 (setq-default line-spacing 0)
 (setq tab-width 4)
-(global-undo-tree-mode -1)
+;;(global-undo-tree-mode -1)
 (global-auto-revert-mode -1)
 (setq-default ac-auto-start 4)
 (setq-default ac-candidate-limit 16)
@@ -64,8 +67,10 @@
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
 
+(remove-hook 'prog-mode-hook 'display-line-numbers-mode)
+;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
+
 (require-package 'multi-term)
-(setq multi-term-program "/usr/bin/zsh")
 (add-hook 'term-mode-hook
           (lambda ()
             (setq term-buffer-maximum-size 10000)
@@ -158,7 +163,7 @@ buffer in current window."
 ;; set custom key bindings
 ;;----------------------------------------------------------------------------
 (global-set-key "\C-z" 'set-mark-command)
-(global-set-key "\C-\\" 'undo-tree-redo)
+;;(global-set-key "\C-\\" 'undo-tree-redo)
 
 ;; To be able to M-x without meta
 (global-set-key (kbd "C-x C-m") 'execute-extended-command)
@@ -278,6 +283,7 @@ User buffers are those whose name does not start with *."
 ;;----------------------------------------------------------------------------
 ;; set some major modes
 ;;----------------------------------------------------------------------------
+
 ;; for c and c++
 (add-hook 'c-mode-hook 'linux-c-mode)
 (add-hook 'c++-mode-hook 'linux-cpp-mode)
