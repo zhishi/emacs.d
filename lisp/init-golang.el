@@ -4,7 +4,12 @@
 
 (when (maybe-require-package 'go-mode)
   (require 'go-mode))
-(require 'go-complete)
+(when (maybe-require-package 'go-complete)
+  (require 'go-complete))
+(when (maybe-require-package 'go-guru)
+  (require 'go-guru))
+(when (maybe-require-package 'protobuf-mode)
+  (require 'protobuf-mode))
 
 (defun my-go-mode-hook ()
   (setq compilation-ask-about-save nil)

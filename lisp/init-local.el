@@ -414,6 +414,12 @@ User buffers are those whose name does not start with *."
   (setq c-basic-offset 2)
   )
 
+(add-hook 'protobuf-mode-hook 'my-protobuf-mode)
+(defun my-protobuf-mode ()
+  (setq c-basic-offset 4)
+  )
+
+
                                         ; w3m
                                         ;(require-package 'w3m)
                                         ;(setq w3m-use-symbol t)
