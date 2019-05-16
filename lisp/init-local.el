@@ -64,10 +64,13 @@
 (setq whitespace-cleanup-mode-only-if-initially-clean t)
 (setq split-height-threshold 1000)
 (setq line-number-display-limit-width 2000000)
+(setq desktop-restore-eager 50)
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
 
 (remove-hook 'prog-mode-hook 'display-line-numbers-mode)
+(remove-hook 'prog-mode-hook 'paredit-everywhere-mode)
+(global-set-key [remap goto-line] nil)
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
 
 (require-package 'multi-term)
