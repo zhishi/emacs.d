@@ -72,6 +72,10 @@
 (remove-hook 'prog-mode-hook 'paredit-everywhere-mode)
 (global-set-key [remap goto-line] nil)
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
+(add-hook 'org-mode-hook 'org-indent-mode)
+(setq org-default-notes-file "~/org/inbox.org")
+(setq org-agenda-files (quote ("~/org"
+                               "~/org/inbox.org")))
 
 (require-package 'multi-term)
 (add-hook 'term-mode-hook
@@ -93,7 +97,7 @@ buffer in current window."
      "%s is up for grabs.")
    (current-buffer)))
 
-(global-set-key (kbd "C-c t") 'toggle-window-dedicated)
+;;(global-set-key (kbd "C-c t") 'toggle-window-dedicated)
 
 (require-package 'golden-ratio-scroll-screen)
 (global-set-key "\C-v" 'golden-ratio-scroll-screen-up)
