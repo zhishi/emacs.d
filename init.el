@@ -136,6 +136,7 @@
 (require 'init-clojure)
 (require 'init-clojure-cider)
 (require 'init-golang)
+(require 'init-cc)
 
 (when *spell-check-support-enabled*
   (require 'init-spelling))

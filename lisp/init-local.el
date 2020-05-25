@@ -65,6 +65,7 @@
 (setq split-height-threshold 1000)
 (setq line-number-display-limit-width 2000000)
 (setq desktop-restore-eager 50)
+(setq org-fontify-emphasized-text nil)
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
 
@@ -281,58 +282,17 @@ User buffers are those whose name does not start with *."
                                         ;(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
                                         ;(require-package 'etags-select)
                                         ;(global-set-key "\M-." 'etags-select-find-tag)
-(require-package 'ggtags)
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-              (ggtags-mode 1))))
+;;(require-package 'ggtags)
+;; (add-hook 'c-mode-common-hook
+;;           (lambda ()
+;;             (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+;;               (ggtags-mode 1))))
 
 ;;----------------------------------------------------------------------------
 ;; set some major modes
 ;;----------------------------------------------------------------------------
 
-;; for c and c++
-(add-hook 'c-mode-hook 'linux-c-mode)
-(add-hook 'c++-mode-hook 'linux-cpp-mode)
-;; ÉèÖÃimenuµÄÅÅÐò·½Ê½Îª°´Ãû³ÆÅÅÐò
-(setq imenu-sort-function 'imenu--sort-by-name)
-(defun linux-c-mode()
-;; ½«»Ø³µ´úÌæC-jµÄ¹¦ÄÜ£¬»»ÐÐµÄÍ¬Ê±¶ÔÆë
-  (define-key c-mode-map [return] 'newline-and-indent)
-  (interactive)
-;; ÉèÖÃC³ÌÐòµÄ¶ÔÆë·ç¸ñ
-  (c-set-style "k&r")
-  (c-set-offset 'inline-open '0)
-;; ×Ô¶¯Ä£Ê½£¬ÔÚ´ËÖÖÄ£Ê½ÏÂµ±Äã¼üÈë{Ê±£¬»á×Ô¶¯¸ù¾ÝÄãÉèÖÃµÄ¶ÔÆë·ç¸ñ¶ÔÆë
-  ;(c-toggle-auto-state)
-;; ´ËÄ£Ê½ÏÂ£¬µ±°´BackspaceÊ±»áÉ¾³ý×î¶àµÄ¿Õ¸ñ
-  (c-toggle-hungry-state)
-;; TAB¼üµÄ¿í¶ÈÉèÖÃÎª4
-  (setq indent-tabs-mode nil)
-  (setq c-basic-offset 4)
-;; ÔÚ²Ëµ¥ÖÐ¼ÓÈëµ±Ç°BufferµÄº¯ÊýË÷Òý
-  (imenu-add-menubar-index)
-;; ÔÚ×´Ì¬ÌõÉÏÏÔÊ¾µ±Ç°¹â±êÔÚÄÄ¸öº¯ÊýÌåÄÚ²¿
-;  (which-function-mode)
- )
-
-(defun linux-cpp-mode()
-  (define-key c++-mode-map [return] 'newline-and-indent)
-  (define-key c++-mode-map [(control c) (c)] 'compile)
-  (interactive)
-  (c-set-style "k&r")
-  (c-set-offset 'inline-open '0)
-  ;(c-toggle-auto-state)
-  (c-toggle-hungry-state)
-  (setq indent-tabs-mode nil)
-  (setq c-basic-offset 4)
-  (imenu-add-menubar-index)
-;  (which-function-mode)
-  )
-(add-to-list 'auto-mode-alist '("\\.h$" . c++-mode))
-(add-to-list 'auto-mode-alist '("\\.bond$" . idl-mode))
-
-;for perl
+;;for perl
 (add-hook 'cperl-mode-hook 'linux-perl-mode)
 (defun linux-perl-mode()
   (define-key cperl-mode-map [return] 'newline-and-indent)
