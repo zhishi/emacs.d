@@ -13,21 +13,24 @@
 ;; make & sudo make install
 ;; on project folder
 ;; gtags --gtagslabel=new-ctags
+;; cp /usr/local/share/gtags/gtags.conf ~/.globalrc
 ;; and put this into start script export GTAGSLABEL=new-ctags
+;; to show full file path: M-o, add customize ggtags-global-abbreviate-filename
 
+;; put ~/.ctags.d/config.ctags with
+;; --kinds-c++=+A
+;; --fields=+imaftn
+;; --extras=+q
+
+(require-package 'ggtags)
 ;; for c and c++
 (add-hook 'c-mode-hook 'linux-c-mode)
 (add-hook 'c++-mode-hook 'linux-cpp-mode)
-;;(require 'eglot)
-;;(add-to-list 'eglot-server-programs '((c++-mode c-mode) "/usr/local/opt/llvm/bin/clangd"))
-;;(add-hook 'c-mode-hook 'eglot-ensure)
-;;(add-hook 'c++-mode-hook 'eglot-ensure)
-
-(require-package 'ggtags)
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (when (derived-mode-p 'c-mode 'c++-mode)
-              (ggtags-mode 1))))
+;; (require 'eglot)
+;; (add-to-list 'eglot-server-programs '((c++-mode c-mode) "/usr/local/opt/llvm/bin/clangd"))
+;; (add-hook 'c-mode-hook 'eglot-ensure)
+;; (add-hook 'c++-mode-hook 'eglot-ensure)
+;; (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1)))
 
 ;; ÉèÖÃimenuµÄÅÅÐò·½Ê½Îª°´Ãû³ÆÅÅÐò
 (setq imenu-sort-function 'imenu--sort-by-name)
@@ -49,6 +52,11 @@
   (imenu-add-menubar-index)
   ;; ÔÚ×´Ì¬ÌõÉÏÏÔÊ¾µ±Ç°¹â±êÔÚÄÄ¸öº¯ÊýÌåÄÚ²¿
                                         ;  (which-function-mode)
+  (require 'flymake)
+  (flymake-mode 0)
+  (ggtags-mode 1)
+  ;;(define-key ggtags-mode-map "\M-." nil)
+  (local-set-key (kbd "C-.") 'ggtags-find-definition)
   )
 
 (defun linux-cpp-mode()
@@ -62,6 +70,14 @@
   (setq indent-tabs-mode nil)
   (setq c-basic-offset 2)
   (imenu-add-menubar-index)
+  (require 'flymake)
+  (flymake-mode 0)
+  (ggtags-mode 1)
+  ;;(define-key ggtags-mode-map "\M-." nil)
+  ;;(local-set-key (kbd "C-.") 'ggtags-find-tag-dwim)
+  (local-set-key (kbd "C-.") 'ggtags-find-definition)
+
+  ;;(local-set-key (kbd "M-.") 'ggtags-find-definition)
                                         ;  (which-function-mode)
   )
 (add-to-list 'auto-mode-alist '("\\.h$" . c++-mode))
