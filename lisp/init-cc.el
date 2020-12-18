@@ -24,7 +24,7 @@
 
 (require-package 'ggtags)
 ;; for c and c++
-(add-hook 'c-mode-hook 'linux-c-mode)
+(add-hook 'c-mode-hook 'linux-cpp-mode)
 (add-hook 'c++-mode-hook 'linux-cpp-mode)
 ;; (require 'eglot)
 ;; (add-to-list 'eglot-server-programs '((c++-mode c-mode) "/usr/local/opt/llvm/bin/clangd"))
@@ -34,31 +34,6 @@
 
 ;; ÉèÖÃimenuµÄÅÅÐò·½Ê½Îª°´Ãû³ÆÅÅÐò
 (setq imenu-sort-function 'imenu--sort-by-name)
-(defun linux-c-mode()
-  ;; ½«»Ø³µ´úÌæC-jµÄ¹¦ÄÜ£¬»»ÐÐµÄÍ¬Ê±¶ÔÆë
-  (define-key c-mode-map [return] 'newline-and-indent)
-  (interactive)
-  ;; ÉèÖÃC³ÌÐòµÄ¶ÔÆë·ç¸ñ
-  (c-set-style "k&r")
-  (c-set-offset 'inline-open '0)
-  ;; ×Ô¶¯Ä£Ê½£¬ÔÚ´ËÖÖÄ£Ê½ÏÂµ±Äã¼üÈë{Ê±£¬»á×Ô¶¯¸ù¾ÝÄãÉèÖÃµÄ¶ÔÆë·ç¸ñ¶ÔÆë
-                                        ;(c-toggle-auto-state)
-  ;; ´ËÄ£Ê½ÏÂ£¬µ±°´BackspaceÊ±»áÉ¾³ý×î¶àµÄ¿Õ¸ñ
-  (c-toggle-hungry-state)
-  ;; TAB¼üµÄ¿í¶ÈÉèÖÃÎª4
-  (setq indent-tabs-mode nil)
-  (setq c-basic-offset 2)
-  ;; ÔÚ²Ëµ¥ÖÐ¼ÓÈëµ±Ç°BufferµÄº¯ÊýË÷Òý
-  (imenu-add-menubar-index)
-  ;; ÔÚ×´Ì¬ÌõÉÏÏÔÊ¾µ±Ç°¹â±êÔÚÄÄ¸öº¯ÊýÌåÄÚ²¿
-                                        ;  (which-function-mode)
-  (require 'flymake)
-  (flymake-mode 0)
-  (ggtags-mode 1)
-  ;;(define-key ggtags-mode-map "\M-." nil)
-  (local-set-key (kbd "C-.") 'ggtags-find-definition)
-  )
-
 (defun linux-cpp-mode()
   (define-key c++-mode-map [return] 'newline-and-indent)
   (define-key c++-mode-map [(control c) (c)] 'compile)
@@ -66,9 +41,15 @@
   (c-set-style "k&r")
   (c-set-offset 'inline-open '0)
                                         ;(c-toggle-auto-state)
-  (c-toggle-hungry-state)
   (setq indent-tabs-mode nil)
   (setq c-basic-offset 2)
+  ;;(c-set-offset 'arglist-intro '+)
+  ;; use C-c C-s to show the syntactic analysis
+  (c-set-offset 'statement-cont 4)
+  (c-set-offset 'arglist-intro 4)
+  (c-set-offset 'member-init-intro 4)
+  (c-set-offset 'innamespace 0)
+  ()
   (imenu-add-menubar-index)
   (require 'flymake)
   (flymake-mode 0)

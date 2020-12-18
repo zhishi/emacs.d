@@ -66,6 +66,9 @@
 (setq line-number-display-limit-width 2000000)
 (setq desktop-restore-eager 50)
 (setq org-fontify-emphasized-text nil)
+(setq org-src-preserve-indentation t)
+(setq org-src-fontify-natively t)
+
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
 
@@ -74,6 +77,9 @@
 (global-set-key [remap goto-line] nil)
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
 (add-hook 'org-mode-hook 'org-indent-mode)
+(add-hook 'org-mode-hook
+          (lambda ()
+            (setq tab-width 4)))
 (setq org-default-notes-file "~/org/inbox.org")
 (setq org-agenda-files (quote ("~/org"
                                "~/org/inbox.org")))
