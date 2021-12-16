@@ -68,12 +68,15 @@
 (setq org-fontify-emphasized-text nil)
 (setq org-src-preserve-indentation t)
 (setq org-src-fontify-natively t)
+(setq neo-window-width 30)
 
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
 
 (remove-hook 'prog-mode-hook 'display-line-numbers-mode)
 (remove-hook 'prog-mode-hook 'paredit-everywhere-mode)
+(remove-hook 'prog-mode-hook 'display-fill-column-indicator-mode)
+
 (global-set-key [remap goto-line] nil)
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
 (add-hook 'org-mode-hook 'org-indent-mode)
@@ -92,6 +95,11 @@
 (add-hook 'term-mode-hook
           (lambda ()
             (define-key term-raw-map (kbd "M-y") 'term-paste)))
+
+(defun align-non-space (BEG END)
+  "Align non-space columns in region BEG END."
+  (interactive "r")
+  (align-regexp BEG END "\\(\\s-*\\)\\S-+" 1 1 t))
 
 (defun toggle-window-dedicated ()
   "Control whether or not Emacs is allowed to display another
