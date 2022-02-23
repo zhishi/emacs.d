@@ -9,7 +9,27 @@
 (when (maybe-require-package 'orderless)
   (with-eval-after-load 'vertico
     (require 'orderless)
-    (setq completion-styles '(orderless basic))))
+    (setq completion-styles '(substring orderless))
+
+    ;; for sort files
+    ;; try the `completion-category-sort-function' first
+    (advice-add #'vertico--sort-function :before-until #'completion-category-sort-function)
+
+    (defun completion-category-sort-function ()
+      (alist-get (vertico--metadata-get 'category)
+                 completion-category-sort-function-overrides))
+
+    (defvar completion-category-sort-function-overrides
+      '((file . directories-before-files))
+      "Completion category-specific sorting function overrides.")
+
+    (defun directories-before-files (files)
+      ;; Still sort by alphabetically
+      (setq files (vertico-sort-alpha files))
+      ;; But then move directories first
+      (nconc (seq-filter (lambda (x) (string-suffix-p "/" x)) files)
+             (seq-remove (lambda (x) (string-suffix-p "/" x)) files)))))
+
 (setq completion-category-defaults nil
       completion-category-overrides nil)
 (setq completion-cycle-threshold 4)

@@ -57,7 +57,7 @@
   ;;(define-key ggtags-mode-map "\M-." nil)
   ;;(local-set-key (kbd "C-.") 'ggtags-find-tag-dwim)
   (local-set-key (kbd "C-.") 'ggtags-find-definition)
-
+  (setq ggtags-global-abbreviate-filename 300)
   ;;(local-set-key (kbd "M-.") 'ggtags-find-definition)
                                         ;  (which-function-mode)
   )

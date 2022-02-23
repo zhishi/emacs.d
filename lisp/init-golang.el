@@ -4,8 +4,6 @@
 
 (when (maybe-require-package 'go-mode)
   (require 'go-mode))
-(when (maybe-require-package 'go-complete)
-  (require 'go-complete))
 (when (maybe-require-package 'go-guru)
   (require 'go-guru))
 (when (maybe-require-package 'protobuf-mode)
@@ -16,7 +14,6 @@
   (setq gofmt-command "goimports")
   (setq tab-width 4)
   (add-hook 'before-save-hook 'gofmt-before-save)
-  (add-hook 'completion-at-point-functions 'go-complete-at-point)
   (local-set-key (kbd "M-.") 'godef-jump)
   (local-set-key (kbd "M-,") 'pop-tag-mark)
   (if (not (string-match "go" compile-command))

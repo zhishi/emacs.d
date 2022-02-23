@@ -45,8 +45,14 @@
                                         ;(set-fontset-font "fontset-default" 'chinese-big5-1 '("Microsoft YaHei" . "unicode-bmp"))
                                         ;(set-fontset-font "fontset-default" 'chinese-big5-2 '("Microsoft YaHei" . "unicode-bmp"))
 
-(set-face-attribute 'default nil :font "Monaco 14")
-(set-frame-font "Monaco 14" nil t)
+;; for macbook
+;;(set-face-attribute 'default nil :font "Monaco 14")
+;;(set-frame-font "Monaco 14" nil t)
+
+;; for windows
+;;(set-face-attribute 'default nil :font "Consolas 10")
+;;(set-frame-font "Consolas 10" nil t)
+;;(set-fontset-font "fontset-default" 'han '("Microsoft YaHei" . "unicode-bmp"))
 
 ;;----------------------------------------------------------------------------
 ;; override some settings in the remote branch
@@ -69,14 +75,20 @@
 (setq org-src-preserve-indentation t)
 (setq org-src-fontify-natively t)
 (setq neo-window-width 30)
-
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
+;; only for terminal emacs
+;;(diff-hl-margin-mode 1)
+;; for tree view
+(with-eval-after-load 'treemacs
+  (define-key treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
 
 (remove-hook 'prog-mode-hook 'display-line-numbers-mode)
 (remove-hook 'prog-mode-hook 'paredit-everywhere-mode)
 (remove-hook 'prog-mode-hook 'display-fill-column-indicator-mode)
-
+(remove-hook 'post-self-insert-hook 'electric-pair-open-newline-between-pairs-psif)
+;; change newline-and-indent which may cause go-lang mode problem in brackets
+(global-set-key (kbd "RET") 'newline)
 (global-set-key [remap goto-line] nil)
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
 (add-hook 'org-mode-hook 'org-indent-mode)
@@ -87,32 +99,10 @@
 (setq org-agenda-files (quote ("~/org"
                                "~/org/inbox.org")))
 
-(require-package 'multi-term)
-(add-hook 'term-mode-hook
-          (lambda ()
-            (setq term-buffer-maximum-size 10000)
-            (toggle-truncate-lines 1)))
-(add-hook 'term-mode-hook
-          (lambda ()
-            (define-key term-raw-map (kbd "M-y") 'term-paste)))
-
 (defun align-non-space (BEG END)
   "Align non-space columns in region BEG END."
   (interactive "r")
   (align-regexp BEG END "\\(\\s-*\\)\\S-+" 1 1 t))
-
-(defun toggle-window-dedicated ()
-  "Control whether or not Emacs is allowed to display another
-buffer in current window."
-  (interactive)
-  (message
-   (if (let (window (get-buffer-window (current-buffer)))
-         (set-window-dedicated-p window (not (window-dedicated-p window))))
-       "%s: Can't touch this!"
-     "%s is up for grabs.")
-   (current-buffer)))
-
-;;(global-set-key (kbd "C-c t") 'toggle-window-dedicated)
 
 (require-package 'golden-ratio-scroll-screen)
 (global-set-key "\C-v" 'golden-ratio-scroll-screen-up)
@@ -134,8 +124,25 @@ buffer in current window."
 ;; modify the standard syntax table to handle hippie-expand on right boundary
 (modify-syntax-entry ?/ "." (standard-syntax-table))
 (modify-syntax-entry ?| "." (standard-syntax-table))
+(modify-syntax-entry ?= "." (standard-syntax-table))
 
 (global-set-key "\M-\\" 'hippie-expand)
+
+;;----------------------------------------------------------------------------
+;; change some setting for minibuffer
+;;----------------------------------------------------------------------------
+(with-eval-after-load 'consult
+  (consult-customize consult-buffer :group nil))
+
+(with-eval-after-load 'marginalia
+  ;; show folder of the buffer
+  (defun my-annotate-buffer (cand)
+    (when-let (buffer (get-buffer cand))
+      (marginalia--fields
+       ((file-name-directory (marginalia--buffer-file buffer))))))
+
+  (add-to-list 'marginalia-annotator-registry
+               '(buffer my-annotate-buffer builtin none)))
 
 ;;----------------------------------------------------------------------------
 ;; set ibuffer list
@@ -201,6 +208,14 @@ buffer in current window."
 (defalias 'rs 'replace-string)
 (defalias 'rr 'replace-regexp)
 
+;; for grep search files using rg
+(with-eval-after-load 'grep
+  (when (executable-find "rg")
+    (grep-apply-setting
+     'grep-find-command
+     '("rg -n -H --no-heading -e '' $(git rev-parse --show-toplevel || pwd)" . 27)))
+  (defalias 'rg 'grep-find))
+
 (defun match-paren (arg)
   "Go to the matching paren if on a paren; otherwise insert %."
   (interactive "p")
@@ -242,6 +257,9 @@ that was stored with ska-point-to-register."
 
 (global-set-key "\C-x\C-r" 'recentf-open-files-compl)
 
+;;----------------------------------------------------------------------------
+;; buffers
+;;----------------------------------------------------------------------------
 ;; switch buffer
 (defun next-user-buffer ()
   "Switch to the next user buffer.
@@ -274,14 +292,33 @@ User buffers are those whose name does not start with *."
     (setq buffer-offer-save t)))
 (global-set-key (kbd "<f5>") 'xah-new-empty-buffer)
 
-;; for SD
-(defun sd-edit-file ()
-  "SD edit the current file and change the buffer read-only-mode"
-  (interactive)
-  (shell-command (concat "sd edit " buffer-file-name))
-  (revert-buffer nil t))
+;;----------------------------------------------------------------------------
+;; for terminal window and tabs
+;;----------------------------------------------------------------------------
+(require-package 'multi-term)
+(add-hook 'term-mode-hook
+          (lambda ()
+            (setq term-buffer-maximum-size 10000)
+            (toggle-truncate-lines 1)))
+(add-hook 'term-mode-hook
+          (lambda ()
+            (define-key term-raw-map (kbd "M-y") 'term-paste)))
 
-(global-set-key (kbd "M-<f2>") 'sd-edit-file)
+;; new terminal tab with dedicated window
+(defun zshi-new-term-tab ()
+  "Open a new tab for dedicated terminal window."
+  (interactive)
+  (let ((tab-bar-new-tab-choice t))
+    (tab-bar-new-tab)
+    (multi-term)
+    (set-window-dedicated-p (selected-window) t)))
+(global-set-key (kbd "<f8>") 'zshi-new-term-tab)
+
+;; switch tab on tab-mode
+(setq tab-bar-show 1)
+(global-set-key (kbd "<C-M-prior>") 'tab-previous) ; Ctrl+Alt+PageUp
+(global-set-key (kbd "<C-M-next>") 'tab-next) ; Ctrl+Alt+PageDown
+
 ;; for build error lookup
 (add-to-list 'auto-mode-alist '("\\.err$" . compilation-mode))
 
