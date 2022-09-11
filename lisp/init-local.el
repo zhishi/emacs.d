@@ -71,10 +71,6 @@
 (setq split-height-threshold 1000)
 (setq line-number-display-limit-width 2000000)
 (setq desktop-restore-eager 50)
-(setq org-fontify-emphasized-text nil)
-(setq org-src-preserve-indentation t)
-(setq org-src-fontify-natively t)
-(setq neo-window-width 30)
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
 ;; only for terminal emacs
@@ -82,6 +78,7 @@
 ;; for tree view
 (with-eval-after-load 'treemacs
   (define-key treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
+;;setq neo-window-width 30)
 
 (remove-hook 'prog-mode-hook 'display-line-numbers-mode)
 (remove-hook 'prog-mode-hook 'paredit-everywhere-mode)
@@ -91,13 +88,6 @@
 (global-set-key (kbd "RET") 'newline)
 (global-set-key [remap goto-line] nil)
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
-(add-hook 'org-mode-hook 'org-indent-mode)
-(add-hook 'org-mode-hook
-          (lambda ()
-            (setq tab-width 4)))
-(setq org-default-notes-file "~/org/inbox.org")
-(setq org-agenda-files (quote ("~/org"
-                               "~/org/inbox.org")))
 
 (defun align-non-space (BEG END)
   "Align non-space columns in region BEG END."
@@ -129,7 +119,7 @@
 (global-set-key "\M-\\" 'hippie-expand)
 
 ;;----------------------------------------------------------------------------
-;; change some setting for minibuffer
+;; add some settings for minibuffer
 ;;----------------------------------------------------------------------------
 (with-eval-after-load 'consult
   (consult-customize consult-buffer :group nil))
@@ -143,6 +133,21 @@
 
   (add-to-list 'marginalia-annotator-registry
                '(buffer my-annotate-buffer builtin none)))
+
+;;----------------------------------------------------------------------------
+;; override some settings for org mode
+;;----------------------------------------------------------------------------
+(with-eval-after-load 'org
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (setq tab-width 4)))
+  (setq org-default-notes-file "~/org/inbox.org")
+  (setq org-agenda-files (quote ("~/org"
+                                 "~/org/inbox.org")))
+  (setq org-fontify-emphasized-text nil)
+  (setq org-src-preserve-indentation t)
+  (setq org-src-fontify-natively t))
 
 ;;----------------------------------------------------------------------------
 ;; set ibuffer list
