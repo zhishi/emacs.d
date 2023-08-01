@@ -67,14 +67,22 @@
 (setq-default ac-candidate-limit 16)
 (setq blink-cursor-delay 0.5)
 (setq uniquify-separator nil)
+(setq dired-kill-when-opening-new-dired-buffer t)
 (setq whitespace-cleanup-mode-only-if-initially-clean t)
 (setq split-height-threshold 1000)
 (setq line-number-display-limit-width 2000000)
 (setq desktop-restore-eager 50)
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
+
+;; for daemon mode to avoid blocking on loading desktops
+(setq desktop-restore-frames nil)
+(setq desktop-load-locked-desktop t)
 ;; only for terminal emacs
 ;;(diff-hl-margin-mode 1)
+(global-set-key "\C-\\" 'indent-region)
+
+
 ;; for tree view
 (with-eval-after-load 'treemacs
   (define-key treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
@@ -88,6 +96,8 @@
 (global-set-key (kbd "RET") 'newline)
 (global-set-key [remap goto-line] nil)
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
+;; reduce memory usage caused by flymake on startup especially in WSL
+(setq flymake-start-on-flymake-mode nil)
 
 (defun align-non-space (BEG END)
   "Align non-space columns in region BEG END."
@@ -100,8 +110,8 @@
 
 ;; use my hippie-expand list
 (setq hippie-expand-try-functions-list
-      '(try-expand-dabbrev
-        try-expand-dabbrev-visible
+      '(try-expand-dabbrev-visible
+        try-expand-dabbrev
         try-expand-line
         try-expand-dabbrev-all-buffers
         try-expand-dabbrev-from-kill
@@ -130,7 +140,6 @@
     (when-let (buffer (get-buffer cand))
       (marginalia--fields
        ((file-name-directory (marginalia--buffer-file buffer))))))
-
   (add-to-list 'marginalia-annotator-registry
                '(buffer my-annotate-buffer builtin none)))
 
@@ -185,8 +194,9 @@
 ;; set backups and auto-save path
 ;;----------------------------------------------------------------------------
 (setq make-backup-files t)
+(setq auto-save-default t)
 ;; Enable versioning with default values (keep five last versions, I think!)
-;(setq version-control t)
+;;(setq version-control t)
 ;; Save all backup file in this directory.
 (setq backup-directory-alist (quote ((".*" . "~/.emacs_backups/"))))
 (setq delete-old-versions t)
@@ -201,10 +211,14 @@
 
 ;; To be able to M-x without meta
 (global-set-key (kbd "C-x C-m") 'execute-extended-command)
+(global-set-key (kbd "M-j") 'avy-goto-char-timer)
 
 (global-set-key "\C-w" 'backward-kill-word)
 (global-set-key "\C-x\C-k" 'whole-line-or-region-kill-region)
 (global-set-key "\C-c\C-k" 'whole-line-or-region-kill-region)
+;; disable upcase-region/lowcase-region
+(global-unset-key "\C-x\C-l")
+(global-unset-key "\C-x\C-u")
 
 (global-set-key (kbd "C-c u") 'revert-buffer)
 (global-set-key (kbd "C-x O") 'previous-multiframe-window)
@@ -308,6 +322,7 @@ User buffers are those whose name does not start with *."
 (add-hook 'term-mode-hook
           (lambda ()
             (define-key term-raw-map (kbd "M-y") 'term-paste)))
+(setq multi-term-program "/usr/bin/zsh")
 
 ;; new terminal tab with dedicated window
 (defun zshi-new-term-tab ()
@@ -321,8 +336,8 @@ User buffers are those whose name does not start with *."
 
 ;; switch tab on tab-mode
 (setq tab-bar-show 1)
-(global-set-key (kbd "<C-M-prior>") 'tab-previous) ; Ctrl+Alt+PageUp
-(global-set-key (kbd "<C-M-next>") 'tab-next) ; Ctrl+Alt+PageDown
+(global-set-key (kbd "<M-left>") 'tab-previous) ; Alt+Left
+(global-set-key (kbd "<M-right>") 'tab-next) ; Alt+Right
 
 ;; for build error lookup
 (add-to-list 'auto-mode-alist '("\\.err$" . compilation-mode))
