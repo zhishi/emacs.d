@@ -50,9 +50,9 @@
 ;;(set-frame-font "Monaco 14" nil t)
 
 ;; for windows
-;;(set-face-attribute 'default nil :font "Consolas 10")
-;;(set-frame-font "Consolas 10" nil t)
-;;(set-fontset-font "fontset-default" 'han '("Microsoft YaHei" . "unicode-bmp"))
+(set-face-attribute 'default nil :font "Consolas 10")
+(set-frame-font "Consolas 10" nil t)
+(set-fontset-font "fontset-default" 'han '("Microsoft YaHei" . "unicode-bmp"))
 
 ;;----------------------------------------------------------------------------
 ;; override some settings in the remote branch
@@ -75,18 +75,37 @@
 ;;(dimmer-mode 0)
 (pixel-scroll-mode -1)
 
+;; change back vc log for faster
+(with-eval-after-load 'vc
+  (setq vc-log-short-style '(directory file))
+  (define-key vc-prefix-map (kbd "l") 'vc-print-log))
+
 ;; for daemon mode to avoid blocking on loading desktops
-(setq desktop-restore-frames nil)
-(setq desktop-load-locked-desktop t)
+;;(setq desktop-restore-frames nil)
+;;(setq desktop-load-locked-desktop t)
 ;; only for terminal emacs
 ;;(diff-hl-margin-mode 1)
-(global-set-key "\C-\\" 'indent-region)
+;;(global-set-key "\C-\\" 'indent-region)
 
+(when (maybe-require-package 'kkp)
+  ;; (require 'kkp)
+  (use-package kkp
+    :ensure t
+    :config
+    (setq kkp-active-enhancements '(disambiguate-escape-codes))
+    ;; (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
+    (global-kkp-mode +1)))
 
 ;; for tree view
 (with-eval-after-load 'treemacs
   (define-key treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
 ;;setq neo-window-width 30)
+
+;; for eglot
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-stay-out-of 'flymake)
+  (add-to-list 'eglot-stay-out-of 'eldoc)
+  (define-key eglot-mode-map (kbd "<f9>") 'xref-find-definitions))
 
 (remove-hook 'prog-mode-hook 'display-line-numbers-mode)
 (remove-hook 'prog-mode-hook 'paredit-everywhere-mode)
@@ -110,9 +129,9 @@
 
 ;; use my hippie-expand list
 (setq hippie-expand-try-functions-list
-      '(try-expand-dabbrev-visible
-        try-expand-dabbrev
+      '(try-expand-dabbrev
         try-expand-line
+        try-expand-dabbrev-visible
         try-expand-dabbrev-all-buffers
         try-expand-dabbrev-from-kill
         ggtags-try-complete-tag
@@ -127,6 +146,28 @@
 (modify-syntax-entry ?= "." (standard-syntax-table))
 
 (global-set-key "\M-\\" 'hippie-expand)
+
+;;----------------------------------------------------------------------------
+;; narrow last focus region if used
+;;----------------------------------------------------------------------------
+(defun narrow-to-focus (start end)
+  "If the region is active, narrow to region, marking it (and only
+it) for the future.  If the mark is not active, narrow to the
+region that was the most recent focus."
+  (interactive "r")
+  (cond ((use-region-p)
+         (remove-overlays (point-min) (point-max) 'focus t)
+         (let ((overlay (make-overlay start end)))
+           (overlay-put overlay 'focus t)
+           (narrow-to-region start end)))
+        (t (let ((focus
+                  (seq-find (lambda (o) (overlay-get o 'focus))
+                            (overlays-in (point-min) (point-max)))))
+             (when focus
+               (narrow-to-region (overlay-start focus)
+                                 (overlay-end focus)))))))
+
+(define-key global-map "\C-xnf" 'narrow-to-focus)
 
 ;;----------------------------------------------------------------------------
 ;; add some settings for minibuffer
@@ -314,15 +355,20 @@ User buffers are those whose name does not start with *."
 ;;----------------------------------------------------------------------------
 ;; for terminal window and tabs
 ;;----------------------------------------------------------------------------
-(require-package 'multi-term)
-(add-hook 'term-mode-hook
-          (lambda ()
-            (setq term-buffer-maximum-size 10000)
-            (toggle-truncate-lines 1)))
-(add-hook 'term-mode-hook
-          (lambda ()
-            (define-key term-raw-map (kbd "M-y") 'term-paste)))
-(setq multi-term-program "/usr/bin/zsh")
+(when (maybe-require-package 'multi-term)
+  (use-package multi-term
+    :ensure t
+    :config
+    ;; make sure paste from clipboard won't freeze term
+    (add-to-list 'term-unbind-key-list "<xterm-paste>")
+    (add-hook 'term-mode-hook
+              (lambda ()
+                (setq term-buffer-maximum-size 10000)
+                (toggle-truncate-lines 1)))
+    (add-hook 'term-mode-hook
+              (lambda ()
+                (define-key term-raw-map (kbd "M-y") 'term-paste)))
+    (setq multi-term-program "/usr/bin/zsh")))
 
 ;; new terminal tab with dedicated window
 (defun zshi-new-term-tab ()
@@ -330,12 +376,15 @@ User buffers are those whose name does not start with *."
   (interactive)
   (let ((tab-bar-new-tab-choice t))
     (tab-bar-new-tab)
-    (multi-term)
+    (if (get-buffer "*terminal<1>*")
+        (switch-to-buffer "*terminal<1>*")
+      (multi-term))
     (set-window-dedicated-p (selected-window) t)))
 (global-set-key (kbd "<f8>") 'zshi-new-term-tab)
 
 ;; switch tab on tab-mode
 (setq tab-bar-show 1)
+(setq tab-bar-auto-width-max '(300 40))
 (global-set-key (kbd "<M-left>") 'tab-previous) ; Alt+Left
 (global-set-key (kbd "<M-right>") 'tab-next) ; Alt+Right
 
