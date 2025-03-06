@@ -2,12 +2,9 @@
 ;;; Commentary:
 ;;; Code:
 
-(when (maybe-require-package 'go-mode)
-  (require 'go-mode))
-(when (maybe-require-package 'go-guru)
-  (require 'go-guru))
-(when (maybe-require-package 'protobuf-mode)
-  (require 'protobuf-mode))
+(maybe-require-package 'go-mode)
+(maybe-require-package 'go-guru)
+(maybe-require-package 'protobuf-mode)
 
 (defun my-go-mode-hook ()
   (setq compilation-ask-about-save nil)

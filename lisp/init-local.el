@@ -1,58 +1,28 @@
 ﻿;;----------------------------------------------------------------------------
-;; set font faces
+;; different settings for different system
 ;;----------------------------------------------------------------------------
-;; (if window-system
-;;     (progn
-;;       (set-face-background 'default "#2A2B2A")
-;;       (set-face-foreground 'default "#E0E2E0")
-;;       (set-face-background 'region "#404645")
-;;       (set-face-foreground 'font-lock-comment-face "#70767B")
-;;       (set-cursor-color "lightgrey")
-;;       (setq font-lock-maximum-decoration 3)))
 
+;;; for daemon mode
+;; avoid blocking on loading desktops
+(setq desktop-restore-frames nil)
+(setq desktop-load-locked-desktop t)
 
-;;use my color theme
-                                        ;(setq custom-enabled-themes nil)
-                                        ;(autoload 'color-theme-molokais "color-theme-molokais" "my color theme" nil)
-                                        ;(color-theme-molokais)
-                                        ;(require-package 'zenburn-theme)
-                                        ;(load-theme 'zenburn t)
-                                        ;(require-package 'color-theme)
-                                        ;(require-package 'color-theme-solarized)
-                                        ;(require 'color-theme)
-                                        ;(setq solarized-italic nil)
-                                        ;(setq solarized-contrast 'high)
-                                        ;(color-theme-solarized-light)
-                                        ;(global-set-key (kbd "M-<f11>") 'color-theme-solarized-light)
-                                        ;(global-set-key (kbd "M-<f12>") 'color-theme-solarized-dark)
+;;; for terminal emacs
+(when (eq system-type 'gnu/linux)
+  ;;(diff-hl-margin-mode 1)
+  (global-set-key "\C-\\" 'indent-region))
 
-;;----------------------------------------------------------------------------
-;; set font and language
-;;----------------------------------------------------------------------------
-                                        ;(set-language-environment 'Chinese-GB18030)
-                                        ;(setq text-scale-mode-step 1.0)
-;; wrong font may cause slow
-                                        ;(set-frame-font "Consolas-11")
-                                        ;(add-to-list 'default-frame-alist '(font . "Consolas-11"))
-                                        ;(set-frame-font "Consolas:pixelsize=16")
-                                        ;(set-frame-font "Microsoft YaHei")
-                                        ;(set-fontset-font "fontset-default" 'han '("Microsoft YaHei" . "unicode-bmp"))
-                                        ;(set-fontset-font "fontset-default" 'han "-*-NSimSun-*-*-*-*-16-*-*-*-*-*-unicode-bmp")
-                                        ;(set-fontset-font "fontset-default" 'chinese-big5-1 "-*-Microsoft YaHei-*-*-*-*-16-*-*-*-*-*-unicode-bmp")
-                                        ;(set-fontset-font "fontset-default" 'chinese-big5-2 "-*-Microsoft YaHei-*-*-*-*-16-*-*-*-*-*-unicode-bmp")
-                                        ;(set-fontset-font "fontset-startup" 'han '("Microsoft yahei" . "unicode-bmp"))
-                                        ;(set-fontset-font "fontset-standard" 'han '("Microsoft YaHei" . "unicode-bmp"))
-                                        ;(set-fontset-font "fontset-default" 'chinese-big5-1 '("Microsoft YaHei" . "unicode-bmp"))
-                                        ;(set-fontset-font "fontset-default" 'chinese-big5-2 '("Microsoft YaHei" . "unicode-bmp"))
+;;; for macbook
+(when (eq system-type 'darwin)
+  (set-face-attribute 'default nil :font "Monaco 14")
+  (set-frame-font "Monaco 14" nil t))
 
-;; for macbook
-;;(set-face-attribute 'default nil :font "Monaco 14")
-;;(set-frame-font "Monaco 14" nil t)
+;;; for windows
+(when (eq system-type 'windows-nt)
+  (set-face-attribute 'default nil :font "Consolas 10")
+  (set-frame-font "Consolas 10" nil t)
+  (set-fontset-font "fontset-default" 'han '("Microsoft YaHei" . "unicode-bmp")))
 
-;; for windows
-(set-face-attribute 'default nil :font "Consolas 10")
-(set-frame-font "Consolas 10" nil t)
-(set-fontset-font "fontset-default" 'han '("Microsoft YaHei" . "unicode-bmp"))
 
 ;;----------------------------------------------------------------------------
 ;; override some settings in the remote branch
@@ -62,7 +32,7 @@
 (setq-default line-spacing 0)
 (setq tab-width 4)
 ;;(global-undo-tree-mode -1)
-(global-auto-revert-mode -1)
+(global-auto-revert-mode t)
 (setq-default ac-auto-start 4)
 (setq-default ac-candidate-limit 16)
 (setq blink-cursor-delay 0.5)
@@ -79,13 +49,6 @@
 (with-eval-after-load 'vc
   (setq vc-log-short-style '(directory file))
   (define-key vc-prefix-map (kbd "l") 'vc-print-log))
-
-;; for daemon mode to avoid blocking on loading desktops
-;;(setq desktop-restore-frames nil)
-;;(setq desktop-load-locked-desktop t)
-;; only for terminal emacs
-;;(diff-hl-margin-mode 1)
-;;(global-set-key "\C-\\" 'indent-region)
 
 (when (maybe-require-package 'kkp)
   ;; (require 'kkp)
@@ -107,13 +70,15 @@
   (add-to-list 'eglot-stay-out-of 'eldoc)
   (define-key eglot-mode-map (kbd "<f9>") 'xref-find-definitions))
 
+(remove-hook 'after-init-hook 'winner-mode)
 (remove-hook 'prog-mode-hook 'display-line-numbers-mode)
 (remove-hook 'prog-mode-hook 'paredit-everywhere-mode)
 (remove-hook 'prog-mode-hook 'display-fill-column-indicator-mode)
 (remove-hook 'post-self-insert-hook 'electric-pair-open-newline-between-pairs-psif)
 ;; change newline-and-indent which may cause go-lang mode problem in brackets
 (global-set-key (kbd "RET") 'newline)
-(global-set-key [remap goto-line] nil)
+;;(global-set-key [remap goto-line] nil)
+
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
 ;; reduce memory usage caused by flymake on startup especially in WSL
 (setq flymake-start-on-flymake-mode nil)
@@ -191,7 +156,7 @@ region that was the most recent focus."
   (add-hook 'org-mode-hook 'org-indent-mode)
   (add-hook 'org-mode-hook
             (lambda ()
-              (setq tab-width 4)))
+              (setq tab-width 8)))
   (setq org-default-notes-file "~/org/inbox.org")
   (setq org-agenda-files (quote ("~/org"
                                  "~/org/inbox.org")))
@@ -426,6 +391,7 @@ User buffers are those whose name does not start with *."
   (setq cperl-continued-statement-offset 4)
   (setq cperl-tab-always-indent t)
   (setq indent-tabs-mode nil)
+  (setq cperl-font-lock t)
   )
 (defalias 'perl-mode 'cperl-mode)
 
@@ -437,7 +403,7 @@ User buffers are those whose name does not start with *."
 (add-hook 'lua-mode-hook  'linux-lua-mode)
 (defun linux-lua-mode()
   (setq indent-tabs-mode nil)
-  (setq lua-indent-level 4)
+  (setq lua-indent-level 2)
   )
 
 ;; for c#
@@ -503,7 +469,7 @@ User buffers are those whose name does not start with *."
 
 (add-hook 'protobuf-mode-hook 'my-protobuf-mode)
 (defun my-protobuf-mode ()
-  (setq c-basic-offset 4)
+  (setq c-basic-offset 2)
   )
 
 
