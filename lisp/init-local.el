@@ -4,13 +4,42 @@
 
 ;;; for daemon mode
 ;; avoid blocking on loading desktops
-(setq desktop-restore-frames nil)
-(setq desktop-load-locked-desktop t)
+(setopt desktop-restore-frames nil)
+(setopt desktop-load-locked-desktop t)
 
 ;;; for terminal emacs
 (when (eq system-type 'gnu/linux)
   ;;(diff-hl-margin-mode 1)
-  (global-set-key "\C-\\" 'indent-region))
+  (global-set-key "\C-\\" 'indent-region)
+  ;; no margin
+  (setopt flymake-indicator-type nil)
+  ;; use vterm which is faster and support paste from outside directly
+  (when (maybe-require-package 'vterm)
+    (use-package vterm
+      ;; make sure some common used keymap still working
+      :bind (:map vterm-mode-map
+                  ("C-c C-e" . #'vterm-send-escape)
+                  ("M-<left>" . nil)
+                  ("M-<right>" . nil)
+                  ("M-w" . nil)
+                  ("<f8>" . nil)
+                  ("<f9>" . nil))
+      :config
+      ;; close tab when vterm exit
+      (add-hook 'vterm-exit-functions
+                (lambda (buf event)
+                  (tab-bar-close-tab (tab-bar-get-buffer-tab buf))))
+      :custom
+      (vterm-max-scrollback 10000 "increase history")))
+  ;; new terminal tab with dedicated window
+  (defun zshi-new-vterm-tab (&optional arg)
+    "Open a new tab for dedicated vterm window with number ARG."
+    (interactive "P")
+    (let ((tab-bar-new-tab-choice t))
+      (tab-bar-new-tab)
+      (vterm arg)
+      (set-window-dedicated-p (selected-window) t)))
+  (global-set-key (kbd "<f9>") 'zshi-new-vterm-tab))
 
 ;;; for macbook
 (when (eq system-type 'darwin)
@@ -35,15 +64,20 @@
 (global-auto-revert-mode t)
 (setq-default ac-auto-start 4)
 (setq-default ac-candidate-limit 16)
-(setq blink-cursor-delay 0.5)
-(setq uniquify-separator nil)
-(setq dired-kill-when-opening-new-dired-buffer t)
-(setq whitespace-cleanup-mode-only-if-initially-clean t)
-(setq split-height-threshold 1000)
+(setopt blink-cursor-delay 0.5)
+(setopt uniquify-separator nil)
+(setopt dired-kill-when-opening-new-dired-buffer t)
+(setopt whitespace-cleanup-mode-only-if-initially-clean t)
+(add-to-list 'whitespace-cleanup-mode-ignore-modes 'go-mode)
+;;(setopt whitespace-cleanup-mode-ignore-modes
+;;        (append whitespace-cleanup-mode-ignore-modes '(go-mode)))
+(setopt split-height-threshold 1000)
 (setq line-number-display-limit-width 2000000)
-(setq desktop-restore-eager 50)
+(setopt desktop-restore-eager 10)
 ;;(dimmer-mode 0)
+;; this also could override some keymap in other major mode like vterm. so disable it
 (pixel-scroll-mode -1)
+(pixel-scroll-precision-mode -1)
 
 ;; change back vc log for faster
 (with-eval-after-load 'vc
@@ -55,7 +89,7 @@
   (use-package kkp
     :ensure t
     :config
-    (setq kkp-active-enhancements '(disambiguate-escape-codes))
+    (setopt kkp-active-enhancements '(disambiguate-escape-codes))
     ;; (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
     (global-kkp-mode +1)))
 
@@ -64,14 +98,9 @@
   (define-key treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
 ;;setq neo-window-width 30)
 
-;; for eglot
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-stay-out-of 'flymake)
-  (add-to-list 'eglot-stay-out-of 'eldoc)
-  (define-key eglot-mode-map (kbd "<f9>") 'xref-find-definitions))
-
 (remove-hook 'after-init-hook 'winner-mode)
 (remove-hook 'prog-mode-hook 'display-line-numbers-mode)
+(remove-hook 'yaml-mode-hook 'display-line-numbers-mode)
 (remove-hook 'prog-mode-hook 'paredit-everywhere-mode)
 (remove-hook 'prog-mode-hook 'display-fill-column-indicator-mode)
 (remove-hook 'post-self-insert-hook 'electric-pair-open-newline-between-pairs-psif)
@@ -81,7 +110,7 @@
 
 ;;(remove-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
 ;; reduce memory usage caused by flymake on startup especially in WSL
-(setq flymake-start-on-flymake-mode nil)
+(setopt flymake-start-on-flymake-mode nil)
 
 (defun align-non-space (BEG END)
   "Align non-space columns in region BEG END."
@@ -93,7 +122,7 @@
 (global-set-key "\M-v" 'golden-ratio-scroll-screen-down)
 
 ;; use my hippie-expand list
-(setq hippie-expand-try-functions-list
+(setopt hippie-expand-try-functions-list
       '(try-expand-dabbrev
         try-expand-line
         try-expand-dabbrev-visible
@@ -111,6 +140,103 @@
 (modify-syntax-entry ?= "." (standard-syntax-table))
 
 (global-set-key "\M-\\" 'hippie-expand)
+
+;;----------------------------------------------------------------------------
+;; try LSP and AI
+;;----------------------------------------------------------------------------
+;; for eglot
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-ignored-server-capabilities ':hoverProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':referencesProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':documentHighlightProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':documentSymbolProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':workspaceSymbolProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':codeActionProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':codeLensProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':documentFormattingProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':documentRangeFormattingProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':documentOnTypeFormattingProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':documentLinkProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':colorProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':executeCommandProvider)
+  (add-to-list 'eglot-ignored-server-capabilities ':inlayHintProvider)
+  (add-to-list 'eglot-stay-out-of 'flymake)
+  (add-to-list 'eglot-stay-out-of 'eldoc)
+  (setopt eglot-extend-to-xref t)
+  (define-key eglot-mode-map (kbd "<f12>") 'xref-find-definitions))
+
+;; for mcp
+(when (maybe-require-package 'mcp)
+  (use-package mcp
+    :ensure t
+    :after gptel
+    :custom (mcp-hub-servers
+             `(("filesystem" . (:command "mcp-filesystem-server" :args ("/home/zhimengshi/go/src/go.goms.io/aks/traffic/")))
+               ))
+    :config
+    (require 'mcp-hub)
+    (mcp-hub-start-all-server)))
+
+;; for gpt
+(with-eval-after-load 'gptel
+  (setq gptel-model 'claude-sonnet-4
+        gptel-backend (gptel-make-gh-copilot "Copilot"))
+
+  (gptel-make-tool
+   :category "web"
+   :name "fetch_url_text"
+   :description "Fetch the plaintext contents from an HTML page specified by its URL"
+   :args (list '(:name "url"
+                       :type string
+                       :description "The url of the web page"))
+   :function (lambda (url)
+               (fetch-url-text url)))
+
+  (gptel-make-tool
+   :category "golang"
+   :name "gofmt_file"
+   :description "Use gofmt to format the golang source file"
+   :function (lambda (path) ; the function that runs
+               (call-process "gofmt" nil 0 nil "-w" path))
+   :args (list '(:name "path"             ; a list of argument specifications
+                       :type string
+                       :description "The file path to format")))
+  ;; for mcp support
+  (require 'gptel-integrations))
+
+;; for web url fetch
+(when (maybe-require-package 'plz)
+  (require 'plz)
+  (require 'shr)
+
+  (defun fetch-url-text (url)
+    "Fetch text content from URL."
+    (plz 'get url
+      :as 'string
+      :then 'sync))
+
+  (defun fetch-url-text-async (callback url)
+    "Fetch text content from URL."
+    (let ((html (plz 'get url
+                  :as 'string
+                  :then 'sync)))
+      (with-temp-buffer
+        (insert html)
+        (shr-render-region (point-min) (point-max))
+        (shr-link-to-markdown)
+        (funcall callback (buffer-substring-no-properties (point-min) (point-max))))))
+
+  (defun shr-link-to-markdown ()
+    "Replace all shr-link in the current buffer to markdown format"
+    (goto-char (point-min))
+    (while (setq prop (text-property-search-forward 'shr-url))
+      (let* ((start (prop-match-beginning prop))
+             (end (prop-match-end prop))
+             (text (buffer-substring-no-properties start end))
+             (link (prop-match-value prop)))
+        (delete-region start end)
+        (goto-char start)
+        (insert (format "[%s](%s)" text link))))))
 
 ;;----------------------------------------------------------------------------
 ;; narrow last focus region if used
@@ -138,7 +264,11 @@ region that was the most recent focus."
 ;; add some settings for minibuffer
 ;;----------------------------------------------------------------------------
 (with-eval-after-load 'consult
-  (consult-customize consult-buffer :group nil))
+  (consult-customize consult-buffer :group nil)
+  ; avoid switch to terminal buffer since they have dedicated windows
+  (add-to-list 'consult-buffer-filter "\\*vterm\\*")
+  (add-to-list 'consult-buffer-filter "\\*vterm<[0-9]>\\*")
+  (add-to-list 'consult-buffer-filter "\\*terminal<1>\\*"))
 
 (with-eval-after-load 'marginalia
   ;; show folder of the buffer
@@ -199,15 +329,15 @@ region that was the most recent focus."
 ;;----------------------------------------------------------------------------
 ;; set backups and auto-save path
 ;;----------------------------------------------------------------------------
-(setq make-backup-files t)
-(setq auto-save-default t)
+(setopt make-backup-files t)
+(setopt auto-save-default t)
 ;; Enable versioning with default values (keep five last versions, I think!)
 ;;(setq version-control t)
 ;; Save all backup file in this directory.
-(setq backup-directory-alist (quote ((".*" . "~/.emacs_backups/"))))
-(setq delete-old-versions t)
-(setq auto-save-file-name-transforms (quote ((".*" "~/.emacs_autosaves/" t))))
-(setq auto-save-list-file-prefix "~/.emacs_autosaves/")
+(setopt backup-directory-alist (quote ((".*" . "~/.emacs_backups/"))))
+(setopt delete-old-versions t)
+(setopt auto-save-file-name-transforms (quote ((".*" "~/.emacs_autosaves/" t))))
+(setopt auto-save-list-file-prefix "~/.emacs_autosaves/")
 
 ;;----------------------------------------------------------------------------
 ;; set custom key bindings
@@ -249,6 +379,7 @@ region that was the most recent focus."
         (t (self-insert-command (or arg 1)))))
 
 (global-set-key "%" 'match-paren)
+;;(global-set-key "%" 'self-insert-command)
 
 ;; book mark
 (defun ska-point-to-register()
@@ -333,7 +464,7 @@ User buffers are those whose name does not start with *."
     (add-hook 'term-mode-hook
               (lambda ()
                 (define-key term-raw-map (kbd "M-y") 'term-paste)))
-    (setq multi-term-program "/usr/bin/zsh")))
+    (setopt multi-term-program "/usr/bin/zsh")))
 
 ;; new terminal tab with dedicated window
 (defun zshi-new-term-tab ()
@@ -348,8 +479,8 @@ User buffers are those whose name does not start with *."
 (global-set-key (kbd "<f8>") 'zshi-new-term-tab)
 
 ;; switch tab on tab-mode
-(setq tab-bar-show 1)
-(setq tab-bar-auto-width-max '(300 40))
+(setopt tab-bar-show 1)
+(setopt tab-bar-auto-width-max '(300 40))
 (global-set-key (kbd "<M-left>") 'tab-previous) ; Alt+Left
 (global-set-key (kbd "<M-right>") 'tab-next) ; Alt+Right
 
@@ -444,7 +575,7 @@ User buffers are those whose name does not start with *."
 ;;------------------------------------------------------------------
 ;; for java mode
 ;;------------------------------------------------------------------
-(setq eclim-executable "/home/zshi/.p2/pool/plugins/org.eclim_2.8.0/bin/eclim")
+(setopt eclim-executable "/home/zshi/.p2/pool/plugins/org.eclim_2.8.0/bin/eclim")
 (require-package 'eclim)
 (global-eclim-mode)
 ;; make the junit buffer check more robust
